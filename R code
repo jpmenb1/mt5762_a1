@@ -1,0 +1,87 @@
+#importing the data set "potplants"
+
+potplants <- read.csv("C:/Users/José Baltazar/Downloads/potplants_MT5762.csv", header = TRUE)
+
+#Creating a function "test" to filter the data set and show only the elements I want to analize for question 1.
+test <-  potplants [c("Group", "Mg", "Al", "K", "Ca", "Ti")]
+
+#"newData" is a new function arranges the data in "test"
+newData <- test %>% gather(key = Element, value = Measure, Mg, Al, K, Ca, Ti)
+
+#"newnewdata" give gives me the mean and standard deviations of the elements above
+newnewdata <- newData %>% group_by(Element, Group) %>% summarise(mean = mean(Measure), sd = sd(Measure))
+
+#graphs separated by soil type and with different colours for each element
+ggplot(data = newData) + geom_point(aes(x = Element, y = Measure, colour = Element )) + facet_grid(~ Group)
+ggplot(data = newData) + geom_boxplot(aes(x = Element, y = Measure, colour = Element )) + facet_grid(~ Group)
+view(newDatatest)
+
+#Question 2
+#filtering the data to be shown only the columns I want
+test2 <-  potplants [c("Sample.Name", "Group", "Mg", "Al", "K", "Ca", "Ti")]
+
+newData2 <- test2 %>% gather(key = Element, value = Measure, Mg, Al, K, Ca, Ti)
+
+newData2 %>% group_by(Element, Sample.Name)
+
+#graphs to compare the measures of a pair of elements
+#Ba and Mo
+bamo <- ggplot(data = potplants, aes(x= Ba, y= Mo)) + geom_point(data = potplants, aes(x = Ba, y = Mo, colour = Group)) + geom_smooth(method = lm)
+
+#Eu and Mo
+eumo <- ggplot(data = potplants, aes(x= Eu, y= Mo)) + geom_point(data = potplants, aes(x = Eu, y = Mo, colour = Group)) + geom_smooth(method = lm)
+
+#Ga and Ba
+gaba <- ggplot(data = potplants, aes(x= Ga, y= Ba)) + geom_point(data = potplants, aes(x = Ga, y = Ba, colour = Group)) + geom_smooth(method = lm)
+
+#Fe and Mn
+femn <- ggplot(data = potplants, aes(x= Fe, y= Mn)) + geom_point(data = potplants, aes(x = Fe, y =Mn, colour = Group)) + geom_smooth(method = lm)
+
+#Ca and Sr
+casr <- ggplot(data = potplants, aes(x= Ca, y = Sr)) + geom_point(data = potplants, aes(x = Ca, y = Sr, colour = Group)) + geom_smooth(method = lm)
+
+#correlation between the elements
+corr1 <- cor(potplants[3:40])
+corrplot(corr1, method = "square", type = "lower")
+
+#How many elements have a correlation smaller than -0.5 or greater than +0.5? Divided by 2 to eliminate
+#duplicates and subtracted 38 to remove correlation between the same elements (for example Mn and Mn)
+sum(corr1 > 0.5 | corr1 < -0.5)/2-38
+
+#Tests
+
+#anova test
+summary(aov(Ca ~ Group, data = potplants))
+summary(aov(K ~ Group, data = potplants))
+summary(aov(Mg ~ Group, data = potplants))
+
+#tukey test
+fm1 <- aov(Mg ~ Group, data = potplants)
+fm2 <- aov(K ~ Group, data = potplants)
+fm3 <- aov(Ca ~ Group, data = potplants)
+
+TukeyHSD(fm1, "Group")
+plot(TukeyHSD(fm1, "Group"))
+TukeyHSD(fm2, "Group")
+plot(TukeyHSD(fm2, "Group"))
+TukeyHSD(fm3, "Group")
+plot(TukeyHSD(fm3, "Group")) 
+
+#t.test
+t.test(potplants$Mg)
+t.test(potplants$K)
+t.test(potplants$Ca)
+
+#wilcox.test
+wilcox.test(potplants$Mg)
+wilcox.test(potplants$K)
+wilcox.test(potplants$Ca)
+
+#normality test
+ggqqplot(potplants$Ca, main = "qqplot Ca")
+ggqqplot(potplants$K, main = "qqplot K")
+ggqqplot(potplants$Mg, main = "qqplot Mg")
+
+ggdensity(potplants$Ca, main = "Density Ca")
+ggdensity(potplants$K, main = "Density K")
+ggdensity(potplants$Mg, main = "Density Mg")
